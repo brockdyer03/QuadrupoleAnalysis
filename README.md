@@ -1,2 +1,121 @@
-# QuadrupoleAnalysis
+# Quadrupole Analysis
 Python functions for taking molecular quadrupole tensors and converting to forms for comparison to literature.
+
+
+### Inertia Tensor and Eigenvectors
+
+The inertia tensor $\textbf{I}$ of a molecule with its center of mass at the origin is given as
+$$
+    \textbf{I} = \sum_j \begin{bmatrix}
+        m_j \left( y^2_j+z^2_j \right) & -m_j x_j y_j                   & -m_j x_j z_j \\
+        -m_j y_j x_j                   & m_j \left( x^2_j+z^2_j \right) & -m_j y_j z_j \\
+        -m_j z_j x_j                   & -m_j z_j y_j                   & m_j \left( x^2_j+y^2_j \right) \\
+    \end{bmatrix}
+$$
+with the index $j$ running over all atoms and $m$ being their mass. For samples with standard isotopic distributions the masses are the average atomic masses and can be accessed by the function `get_atomic_mass()`. Due to the transposition symmetry of the inertia tensor ($\textbf{I}_{\alpha\beta} = \textbf{I}_{\beta\alpha}$), we need only calculate the upper right (or lower left) triangular portion of the tensor, simplifying our calculations to
+$$
+    \begin{align*}
+        \textbf{I}_{xx} &= \sum_j^N m_j \left( y'^2_j+z'^2_j \right) \\
+        \textbf{I}_{yy} &= \sum_j^N m_j \left( x'^2_j+z'^2_j \right) \\
+        \textbf{I}_{zz} &= \sum_j^N m_j \left( x'^2_j+y'^2_j \right) \\
+        \textbf{I}_{xy} &= \textbf{I}_{yx} = -\sum_j^N m_j x'_j y'_j \\
+        \textbf{I}_{xz} &= \textbf{I}_{zx} = -\sum_j^N m_j x'_j z'_j \\
+        \textbf{I}_{yz} &= \textbf{I}_{zy} = -\sum_j^N m_j y'_j z'_j \\
+    \end{align*}
+$$
+and for a system with a center of mass $\textbf{R}_\alpha = (\textbf{R}_x,\quad \textbf{R}_y,\quad \textbf{R}_z)$ given by
+$$
+    \textbf{R}_\alpha = \frac{1}{M}\sum_{j} m_j * \textbf{r}_j;\quad M = \sum_{j} m_j
+$$
+that is not at the origin, we set $(x'_j,\quad y'_j,\quad z'_j) = (x_j-\textbf{R}_x,\quad y_j-\textbf{R}_y,\quad z_j-\textbf{R}_z)$.
+
+Calculating the center of mass in Python requires a simple loop over all atoms. Here we have used the `Geometry` class which, when used as an iterator, yields individual members of the `Atom` class which have two attributes, the atomic symbol (`atom.element`) and the XYZ coordinates (`atom.xyz`), making our code into
+
+***
+
+```python
+center_of_mass = np.zeros(3, dtype=float)
+total_mass = 0.
+for atom in geometry:
+    mass = get_atomic_mass(atom.element)
+    center_of_mass += atom.xyz * mass
+    total_mass += mass
+center_of_mass = center_of_mass / total_mass
+```
+
+***
+
+We can then initialize an array of zeros for the inertia matrix and begin iterating through the atoms in the geometry once again,
+
+***
+
+```python
+inertia_matrix = np.zeros((3, 3), dtype=float)
+
+for atom in geometry:
+    mass = get_atomic_mass(atom.element)
+    x = atom.xyz[0] - center_of_mass[0]
+    y = atom.xyz[1] - center_of_mass[1]
+    z = atom.xyz[2] - center_of_mass[2]
+
+    xx = mass * (y**2 + z**2)
+    yy = mass * (x**2 + z**2)
+    zz = mass * (x**2 + y**2)
+
+    xy = mass * (x * y)
+    xz = mass * (x * z)
+    yz = mass * (y * z)
+
+    inertia_matrix[0,0] += xx
+    inertia_matrix[1,1] += yy
+    inertia_matrix[2,2] += zz
+
+    inertia_matrix[0,1] += -xy
+    inertia_matrix[1,0] += -xy
+
+    inertia_matrix[0,2] += -xz
+    inertia_matrix[2,0] += -xz
+
+    inertia_matrix[1,2] += -yz
+    inertia_matrix[2,1] += -yz
+```
+
+***
+
+Finally, to get the desired eigenvectors for our rotation matrix, we use the NumPy function `numpy.linalg.eig()`, and return the output
+
+***
+
+```python
+eigenvalues, eigenvectors = np.linalg.eig(inertia_matrix)
+
+return eigenvalues, eigenvectors
+```
+
+***
+
+We do not currently use the eigenvalues further in the code, but we return them nonetheless to make our code more easily extensible.
+
+
+### Detracing Operation
+
+The quadrupole tensor is a 3x3 matrix with transposition symmetry. These can be calculated as
+$$
+    \Theta_{\alpha\beta} = \sum_i e_i\textbf{r}_{i_\alpha}\textbf{r}_{i_\beta}
+$$
+
+There have been many papers arguing the form of this matrix, however due to the prevalence of the traceless quadrupole moment in experimental measurements of the quadrupole tensor, we have opted to include a method which can apply a detracing operation to an otherwise normal quadrupole matrix. The function `detrace_quadrupole()` performs the following operation
+$$
+    \mathbb{A}_{traceless} = \frac{3}{2}\left( \mathbb{A} - \mathbb{I}\frac{tr(\mathbb{A})}{3} \right)
+$$
+with the code
+
+***
+
+```python
+def detrace_quadrupole(quadrupole: npt.NDArray):
+    return (3 / 2) * (quadrupole - (np.eye(3,3) * (np.trace(quadrupole) / 3)))
+```
+
+***
+with the standard factor of 3/2 for the detracing operation. See the associated docstring for `detrace_quadrupole()` for links to papers discussing the traceless quadrupole and for notes regarding detracing in ORCA and Quantum ESPRESSO.
