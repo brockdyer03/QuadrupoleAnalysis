@@ -10,9 +10,13 @@ on:
   
 
 jobs:
-  build:
-
+  pypi:
     runs-on: ubuntu-latest
+    environment:
+      name: quadrupole
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
