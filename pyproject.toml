@@ -3,6 +3,8 @@ name = "quadrupole"
 version = "0.1.0"
 description = "Classes for reading and manipulating molecular quadrupole moments."
 readme = "README.md"
+license = "BSD 3-Clause"
+license-files = "LICENSE"
 authors = [
     { name = "Brock Dyer", email = "brockdyer03@gmail.com" }
 ]
@@ -14,3 +16,6 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[project.urls]
+Repository = "https://github.com/brockdyer03/quadrupole"
