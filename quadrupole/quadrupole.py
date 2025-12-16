@@ -622,6 +622,10 @@ class Geometry:
 
     def __len__(self):
         return len(self.atoms)
+    
+
+    def __getitem__(self, index):
+        return self.atoms[index]
 
 
 class Quadrupole:
@@ -895,3 +899,7 @@ class Quadrupole:
         q2 = quad.as_unit(self.units)
         q2 = q2.quadrupole
         return Quadrupole(quadrupole=q1-q2, units=self.units)
+
+
+    def __getitem__(self, index):
+        return self.quadrupole[index]
