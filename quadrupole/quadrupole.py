@@ -465,8 +465,6 @@ class Geometry:
             # Calculate lattice parameter
             alat = np.sqrt(np.sum(lat_vec[0,:] ** 2))
 
-            lat_vec = lat_vec / alat
-
             # Pull the number of atoms
             num_atoms = int(crystal_info[-1].split()[0])
 
@@ -599,16 +597,15 @@ class Geometry:
     def __repr__(self):
         self_repr = ""
         if self.lat_vec is not None:
-            lat_vec_scaled = self.lat_vec * self.alat
 
             self_repr += f"{"Lattice":12}{"X":11}{"Y":11}{"Z":11}\n{"Vectors":11}\n"
-            self_repr += f"{"":9}{lat_vec_scaled[0][0]:11.6f}{lat_vec_scaled[0][1]:11.6f}{lat_vec_scaled[0][2]:11.6f}\n"
-            self_repr += f"{"":9}{lat_vec_scaled[1][0]:11.6f}{lat_vec_scaled[1][1]:11.6f}{lat_vec_scaled[1][2]:11.6f}\n"
-            self_repr += f"{"":9}{lat_vec_scaled[2][0]:11.6f}{lat_vec_scaled[2][1]:11.6f}{lat_vec_scaled[2][2]:11.6f}\n\n"
+            self_repr += f"{"":9}{self.lat_vec[0][0]:11.6f}{self.lat_vec[0][1]:11.6f}{self.lat_vec[0][2]:11.6f}\n"
+            self_repr += f"{"":9}{self.lat_vec[1][0]:11.6f}{self.lat_vec[1][1]:11.6f}{self.lat_vec[1][2]:11.6f}\n"
+            self_repr += f"{"":9}{self.lat_vec[2][0]:11.6f}{self.lat_vec[2][1]:11.6f}{self.lat_vec[2][2]:11.6f}\n\n"
 
             self_repr += f"{"Element":12}{"X":11}{"Y":11}{"Z":11}\n\n"
             for i in self.atoms:
-                self_repr += f"{i.element:9}{i.xyz[0]*self.alat:11.6f}{i.xyz[1]*self.alat:11.6f}{i.xyz[2]*self.alat:11.6f}\n"
+                self_repr += f"{i.element:9}{i.xyz[0]:11.6f}{i.xyz[1]:11.6f}{i.xyz[2]:11.6f}\n"
         else:
             self_repr += f"{"Element":12}{"X":11}{"Y":11}{"Z":11}\n\n"
             for i in self.atoms:
