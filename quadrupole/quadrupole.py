@@ -507,15 +507,15 @@ class Geometry:
 
 
     @classmethod
-    def from_list(cls, elements: list[str], xyzs: npt.NDArray, charge: int = 0):
+    def from_list(cls, elements: list[str], xyzs: npt.NDArray) -> Geometry:
         if len(elements) != len(xyzs):
             raise ValueError("The list of elements and coordinates must be of the same size!")
-        else:
-            atoms = []
-            for i, element in enumerate(elements):
-                atoms.append(Atom(element, xyzs[i]))
 
-        return Geometry(atoms, charge)
+        atoms = []
+        for i, element in enumerate(elements):
+            atoms.append(Atom(element, xyzs[i]))
+
+        return Geometry(atoms)
 
 
     @classmethod
