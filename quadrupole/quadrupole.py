@@ -129,7 +129,7 @@ def get_atomic_number(atomic_symbol: str) -> int:
         "Og",
     ]
 
-    return elements.index(atomic_symbol.title()) # str.title() returns string with the first letter capitalized
+    return elements.index(atomic_symbol.title())+1 # str.title() returns string with the first letter capitalized
 
 
 def get_atomic_symbol(atomic_number: int) -> str:
