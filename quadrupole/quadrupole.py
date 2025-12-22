@@ -860,6 +860,8 @@ class Quadrupole:
         This code does not guarantee a correct comparison, it simply uses statistical analysis to attempt to
         rotate a calculated quadrupole into the correct frame to be compared to an experimental quadrupole.
         """
+        if not isinstance(expt_quad, Quadrupole):
+            expt = Quadrupole(expt)
 
         calc_quad = np.diag(self.quadrupole)
         expt_quad = np.diag(expt.quadrupole)
